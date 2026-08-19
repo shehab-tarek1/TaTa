@@ -59,15 +59,23 @@
       background-size: 200% 100%;
       animation: shimmer 1.5s infinite;
     }
-    /* Performance friendly semi-transparent overlay for mobile */
+    /* Balanced semi-transparent overlay to keep categories clear & bright */
     .mobile-overlay {
-      background-color: rgba(14, 17, 23, 0.82);
+      background-color: rgba(14, 17, 23, 0.45);
     }
     .line-clamp-1 {
       display: -webkit-box;
       -webkit-line-clamp: 1;
       -webkit-box-orient: vertical;
       overflow: hidden;
+    }
+    /* Toast slide up animation */
+    @keyframes toastIn {
+      from { transform: translateY(100%); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    .animate-toast {
+      animation: toastIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
   </style>
 
@@ -125,7 +133,7 @@
         </p>
       </div>
 
-      <!-- Categories Section (15 Categories - 3 in row on mobile) -->
+      <!-- Categories Section (15 Categories - 3 per row on mobile) -->
       <div>
         <h2 class="text-xs sm:text-sm font-bold text-white mb-2.5 flex items-center gap-1.5">
           <span class="w-1.5 h-3.5 bg-brand-red rounded-full"></span>
@@ -160,7 +168,7 @@
 
     </div>
 
-    <!-- VIEW 2: CATEGORY MEALS VIEW -->
+    <!-- VIEW 2: CATEGORY MEALS VIEW (2 Cards Per Row on Mobile) -->
     <div id="view-category" class="hidden space-y-3 sm:space-y-4">
       
       <!-- Sub-header: Back button, Title & Filters -->
@@ -189,8 +197,8 @@
         </div>
       </div>
 
-      <!-- Meals Grid -->
-      <div id="meals-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5 sm:gap-3">
+      <!-- Meals Grid: 2 columns on mobile, 3 on tablet, 4 on desktop -->
+      <div id="meals-grid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-3">
         <!-- Rendered via JS -->
       </div>
     </div>
@@ -261,9 +269,9 @@
         <span class="text-base sm:text-lg font-black text-white">مطعم طأطأ</span>
       </div>
 
-      <!-- 2. Branches in one line -->
+      <!-- 2. Updated Branches in one line -->
       <div class="text-[10px] sm:text-xs text-brand-metallic">
-        <p><i class="fa-solid fa-location-dot text-brand-red ml-1"></i> <span class="text-brand-silver font-semibold">فرع 1:</span> شارع التحرير، الدقي | <span class="text-brand-silver font-semibold">فرع 2:</span> شارع الهرم، الجيزة</p>
+        <p><i class="fa-solid fa-location-dot text-brand-red ml-1"></i> <span class="text-brand-silver font-semibold">المقر 1:</span> القومية شارع المشير أحمد إسماعيل | <span class="text-brand-silver font-semibold">المقر 2:</span> الغشام برج طيبة ممر تسيباس</p>
       </div>
 
       <!-- 3. Firebase Live Visitor Counter -->
@@ -275,12 +283,19 @@
         </div>
       </div>
 
-      <!-- 4. Social Media Icons -->
+      <!-- 4. Social Media Icons with Link & Notification Triggers -->
       <div class="flex items-center justify-center gap-4 sm:gap-5 text-base sm:text-lg text-brand-silver pt-0.5">
-        <a href="#" class="hover:text-blue-500 transition"><i class="fa-brands fa-facebook"></i></a>
-        <a href="#" class="hover:text-pink-500 transition"><i class="fa-brands fa-instagram"></i></a>
-        <a href="https://wa.me/201206244875" target="_blank" class="hover:text-green-500 transition"><i class="fa-brands fa-whatsapp"></i></a>
-        <a href="#" class="hover:text-white transition"><i class="fa-brands fa-tiktok"></i></a>
+        <!-- Facebook Link -->
+        <a href="https://www.facebook.com/share/19G2bcaGEh/" target="_blank" class="hover:text-blue-500 transition" title="فيسبوك"><i class="fa-brands fa-facebook"></i></a>
+        
+        <!-- Instagram (Toast message) -->
+        <button onclick="showSocialToast('انستجرام')" class="hover:text-pink-500 transition" title="انستجرام"><i class="fa-brands fa-instagram"></i></button>
+        
+        <!-- WhatsApp Link -->
+        <a href="https://wa.me/201022227797" target="_blank" class="hover:text-green-500 transition" title="واتساب"><i class="fa-brands fa-whatsapp"></i></a>
+        
+        <!-- TikTok (Toast message) -->
+        <button onclick="showSocialToast('تيك توك')" class="hover:text-white transition" title="تيك توك"><i class="fa-brands fa-tiktok"></i></button>
       </div>
 
       <!-- 5. Standalone Copyright Line -->
@@ -293,7 +308,8 @@
 
   <!-- ==================== 4. JAVASCRIPT LOGIC ==================== -->
   <script>
-    const WHATSAPP_PHONE = "201206244875";
+    // Updated Official WhatsApp Phone Number
+    const WHATSAPP_PHONE = "201022227797";
 
     const firebaseConfig = {
       apiKey: "AIzaSyClioSTiWEtg8QR0LTv01ctCdEUyiFi-Jo",
@@ -308,7 +324,7 @@
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    // 15 Categories (With "عروض" and the new Crepe & Meals images)
+    // 15 Categories (Updated Crepe & Meals & Offers Images)
     const CATEGORIES = [
       { id: "meat-sandwiches", name: "سندوتشات لحوم", img: "https://images.pexels.com/photos/1639557/pexels-photo-1639557.jpeg?auto=compress&cs=tinysrgb&w=300" },
       { id: "tata-shawarma", name: "شاورما طاطا", img: "https://images.pexels.com/photos/461198/pexels-photo-461198.jpeg?auto=compress&cs=tinysrgb&w=300" },
@@ -369,7 +385,6 @@
       });
     }
 
-    // Navigation and Footer visibility toggle
     function navigateTo(view) {
       document.getElementById('view-home').classList.add('hidden');
       document.getElementById('view-category').classList.add('hidden');
@@ -396,7 +411,7 @@
         <div onclick="selectCategory('${cat.id}')" class="relative aspect-square rounded-xl overflow-hidden border border-brand-border bg-brand-cardBg cursor-pointer active:scale-95 transition shadow-sm">
           <img src="${cat.img}" loading="lazy" alt="${cat.name}" class="w-full h-full object-cover">
           <div class="absolute inset-0 mobile-overlay flex items-center justify-center p-1">
-            <div class="bg-black/80 border border-brand-border/60 px-1.5 py-0.5 rounded-lg w-full text-center">
+            <div class="bg-black/75 border border-brand-border/60 px-1.5 py-0.5 rounded-lg w-full text-center">
               <span class="text-[10px] sm:text-xs font-bold text-white block truncate leading-tight">${cat.name}</span>
             </div>
           </div>
@@ -415,11 +430,12 @@
 
     function loadCategoryMeals(catId) {
       const container = document.getElementById('meals-grid');
-      container.innerHTML = [1, 2, 3].map(() => `
-        <div class="bg-brand-cardBg border border-brand-border rounded-xl p-2.5 space-y-2">
-          <div class="w-full aspect-video rounded-lg skeleton"></div>
-          <div class="h-3.5 w-2/3 skeleton rounded"></div>
-          <div class="h-8 w-full skeleton rounded-lg"></div>
+      // Skeleton loader for 2-column mobile view
+      container.innerHTML = [1, 2, 3, 4].map(() => `
+        <div class="bg-brand-cardBg border border-brand-border rounded-xl p-2 space-y-1.5">
+          <div class="w-full aspect-[4/3] rounded-lg skeleton"></div>
+          <div class="h-3 w-3/4 skeleton rounded"></div>
+          <div class="h-6 w-full skeleton rounded-lg"></div>
         </div>
       `).join('');
 
@@ -430,6 +446,7 @@
       }).catch(() => renderMeals([]));
     }
 
+    // Render Meals Grid (2 Columns on Mobile)
     function renderMeals(meals) {
       const container = document.getElementById('meals-grid');
       if (!meals || meals.length === 0) {
@@ -447,9 +464,9 @@
         const img = m.imageUrl || 'https://res.cloudinary.com/dsxrjmcxs/image/upload/c_limit,w_400,q_auto,f_auto/v1787108547/te24ianhwbmlvvinlf7g.png';
         
         return `
-          <div class="bg-brand-cardBg border border-brand-border rounded-2xl p-2.5 sm:p-3 flex flex-col justify-between shadow">
+          <div class="bg-brand-cardBg border border-brand-border rounded-xl p-2 sm:p-3 flex flex-col justify-between shadow">
             
-            <div class="relative w-full aspect-video rounded-xl overflow-hidden mb-2 bg-black">
+            <div class="relative w-full aspect-[4/3] rounded-lg overflow-hidden mb-1.5 bg-black">
               <img src="${img}" loading="lazy" alt="${m.name}" class="w-full h-full object-cover">
               <button onclick="shareMeal('${m.id}', '${escapeQuotes(m.name)}', ${m.price})" class="absolute top-1.5 left-1.5 w-6 h-6 rounded-full bg-black/70 text-white flex items-center justify-center text-[10px] hover:bg-brand-red transition">
                 <i class="fa-solid fa-share-nodes"></i>
@@ -457,19 +474,19 @@
             </div>
 
             <div class="space-y-0.5">
-              <div class="text-[9px] text-brand-metallic">تاريخ النشر: ${updatedDate}</div>
+              <div class="text-[8px] sm:text-[9px] text-brand-metallic">تاريخ النشر: ${updatedDate}</div>
               <div class="flex items-center justify-between gap-1">
-                <h3 class="text-xs sm:text-sm font-bold text-white truncate">${m.name}</h3>
-                <span class="text-xs sm:text-sm font-black text-brand-red shrink-0">${m.price} ج.م</span>
+                <h3 class="text-xs font-bold text-white truncate">${m.name}</h3>
+                <span class="text-xs font-black text-brand-red shrink-0">${m.price} ج.م</span>
               </div>
-              <p class="text-[10px] sm:text-[11px] text-brand-metallic line-clamp-1">${m.desc || ''}</p>
+              <p class="text-[9px] sm:text-[10px] text-brand-metallic line-clamp-1">${m.desc || ''}</p>
             </div>
 
-            <div class="flex items-center gap-1.5 mt-2.5 pt-2 border-t border-brand-border/60">
-              <button onclick="orderSingleDirect('${m.id}', '${escapeQuotes(m.name)}', ${m.price}, '${img}')" class="flex-1 bg-brand-red hover:bg-brand-redHover text-white text-[11px] sm:text-xs font-bold py-2 rounded-xl transition">
+            <div class="flex items-center gap-1.5 mt-2 pt-1.5 border-t border-brand-border/60">
+              <button onclick="orderSingleDirect('${m.id}', '${escapeQuotes(m.name)}', ${m.price}, '${img}')" class="flex-1 bg-brand-red hover:bg-brand-redHover text-white text-[11px] font-bold py-1.5 rounded-lg transition">
                 طلب
               </button>
-              <button onclick="addToCart('${m.id}', '${escapeQuotes(m.name)}', ${m.price}, '${img}')" class="w-8 h-8 bg-[#12161f] border border-brand-border rounded-xl text-brand-silver hover:text-white flex items-center justify-center transition">
+              <button onclick="addToCart('${m.id}', '${escapeQuotes(m.name)}', ${m.price}, '${img}')" class="w-7 h-7 bg-[#12161f] border border-brand-border rounded-lg text-brand-silver hover:text-white flex items-center justify-center transition">
                 <i class="fa-solid fa-cart-plus text-xs"></i>
               </button>
             </div>
@@ -655,6 +672,29 @@
         navigator.clipboard.writeText(shareUrl);
         alert("تم نسخ رابط الوجبة بنجاح!");
       }
+    }
+
+    // Elegant Social Media Missing Toast Notification
+    function showSocialToast(platform) {
+      const oldToast = document.getElementById('social-toast');
+      if (oldToast) oldToast.remove();
+
+      const toast = document.createElement('div');
+      toast.id = 'social-toast';
+      toast.className = 'fixed bottom-5 left-1/2 -translate-x-1/2 z-50 bg-[#1a202c] text-white border border-brand-red/60 px-4 py-2.5 rounded-xl shadow-2xl flex items-center gap-2 text-xs animate-toast';
+      toast.innerHTML = `
+        <i class="fa-solid fa-circle-info text-brand-red text-sm"></i>
+        <span>لا يوجد رابط <strong>${platform}</strong> حالياً، تابعنا قريباً!</span>
+      `;
+      document.body.appendChild(toast);
+
+      setTimeout(() => {
+        if (toast) {
+          toast.style.transition = 'opacity 0.4s ease';
+          toast.style.opacity = '0';
+          setTimeout(() => toast.remove(), 400);
+        }
+      }, 3000);
     }
   </script>
 </body>
