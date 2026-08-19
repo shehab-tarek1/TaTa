@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>مطعم طأطأ | أشهى المأكولات والسندوتشات</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Google Cairo Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+
+  <!-- Tailwind Configuration -->
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              red: '#d61a29',
+              redHover: '#b91522',
+              silver: '#e5e7eb',
+              metallic: '#9ca3af',
+              darkBg: '#0e1117',
+              cardBg: '#161b22',
+              border: '#272f3d'
+            }
+          },
+          fontFamily: {
+            cairo: ['Cairo', 'sans-serif']
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    * {
+      font-family: 'Cairo', sans-serif;
+      -webkit-tap-highlight-color: transparent;
+      box-sizing: border-box;
+    }
+    body {
+      background-color: #0e1117;
+      color: #e5e7eb;
+    }
+    /* Skeleton Shimmer Animation */
+    @keyframes shimmer {
+      0% { background-position: -200% 0; }
+      100% { background-position: 200% 0; }
+    }
+    .skeleton {
+      background: linear-gradient(90deg, #1c222d 25%, #2a3444 50%, #1c222d 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+    }
+    /* Performance friendly semi-transparent overlay for mobile */
+    .mobile-overlay {
+      background-color: rgba(14, 17, 23, 0.82);
+    }
+    .line-clamp-1 {
+      display: -webkit-box;
+      -webkit-line-clamp: 1;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+  </style>
+
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+</head>
+<body class="min-h-screen flex flex-col justify-between selection:bg-brand-red selection:text-white text-xs sm:text-sm">
+
+  <!-- ==================== 1. HEADER ==================== -->
+  <header class="sticky top-0 z-40 bg-[#12161f] border-b border-brand-border px-3 py-2.5 shadow-md">
+    <div class="max-w-4xl mx-auto flex items-center justify-between">
+      
+      <!-- Right: Logo & Restaurant Name -->
+      <div class="flex items-center gap-2.5 cursor-pointer" onclick="navigateTo('home')">
+        <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-full border-2 border-brand-red p-0.5 bg-black flex items-center justify-center overflow-hidden shadow">
+          <img src="https://res.cloudinary.com/dsxrjmcxs/image/upload/c_limit,w_400,q_auto,f_auto/v1787108547/te24ianhwbmlvvinlf7g.png" alt="لوجو مطعم طأطأ" class="w-full h-full object-contain rounded-full">
+        </div>
+        <span class="text-base sm:text-lg font-black tracking-wide text-transparent bg-clip-text bg-gradient-to-r from-brand-silver via-white to-brand-metallic">طأطأ</span>
+      </div>
+
+      <!-- Left: Cart Button with Red Badge -->
+      <button onclick="navigateTo('cart')" class="relative bg-[#1c2330] hover:bg-[#252f40] border border-brand-border px-3 py-2 rounded-xl transition duration-200 text-white flex items-center justify-center shadow-sm">
+        <i class="fa-solid fa-cart-shopping text-sm sm:text-base text-brand-silver"></i>
+        <span id="cart-badge" class="absolute -top-1.5 -left-1.5 bg-brand-red text-white text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center border border-[#12161f]">0</span>
+      </button>
+
+    </div>
+  </header>
+
+  <!-- ==================== 2. MAIN CONTENT ==================== -->
+  <main class="flex-grow max-w-4xl w-full mx-auto p-3 sm:p-4">
+
+    <!-- VIEW 1: HOME PAGE -->
+    <div id="view-home" class="space-y-4 sm:space-y-5">
+      
+      <!-- Cover Banner -->
+      <div class="w-full h-32 sm:h-48 rounded-2xl overflow-hidden relative border border-brand-border shadow-md">
+        <img src="https://images.pexels.com/photos/1639557/pexels-photo-1639557.jpeg?auto=compress&cs=tinysrgb&w=1000" 
+             loading="lazy" 
+             alt="عروض مطعم طأطأ" 
+             class="w-full h-full object-cover">
+        <div class="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent flex items-end p-3">
+          <p class="text-[11px] sm:text-xs font-bold text-brand-silver drop-shadow">طعم يجمعنا وألذ المأكولات السريعة والشعبية</p>
+        </div>
+      </div>
+
+      <!-- About Section -->
+      <div class="text-center py-1">
+        <h1 class="text-lg sm:text-xl font-black text-white">مطعم طأطأ</h1>
+        <!-- Gradient Underline -->
+        <div class="w-20 h-0.5 mx-auto my-1.5 rounded-full bg-gradient-to-r from-brand-silver via-brand-red to-brand-silver"></div>
+        <p class="text-[11px] sm:text-xs text-brand-metallic max-w-sm mx-auto leading-relaxed">
+          نقدم لكم أشهى وأطيب الوجبات والسندوتشات الطازجة يومياً بأعلى معايير الجودة والنظافة لتستمتع بأفضل مذاق.
+        </p>
+      </div>
+
+      <!-- Categories Section (15 Categories - 3 in row on mobile) -->
+      <div>
+        <h2 class="text-xs sm:text-sm font-bold text-white mb-2.5 flex items-center gap-1.5">
+          <span class="w-1.5 h-3.5 bg-brand-red rounded-full"></span>
+          أقسام المطعم
+        </h2>
+        <div id="categories-grid" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-7 lg:grid-cols-8 gap-1.5 sm:gap-2.5">
+          <!-- Rendered dynamically by JavaScript -->
+        </div>
+      </div>
+
+      <!-- FAQ Section (3 Questions) -->
+      <div class="bg-brand-cardBg border border-brand-border rounded-2xl p-3 sm:p-4 mt-4">
+        <h3 class="text-xs sm:text-sm font-bold text-white mb-2.5 flex items-center gap-1.5">
+          <i class="fa-solid fa-circle-question text-brand-red"></i>
+          الأسئلة الشائعة
+        </h3>
+        <div class="space-y-2 text-[11px] sm:text-xs">
+          <div class="p-2 sm:p-2.5 rounded-xl bg-[#12161f] border border-brand-border/60">
+            <p class="font-bold text-white">هل يوجد خدمة توصيل 24 ساعة؟</p>
+            <p class="text-brand-metallic mt-0.5">نعم، خدمة التوصيل متوفرة على مدار 24 ساعة لجميع المناطق المجاورة للفروع.</p>
+          </div>
+          <div class="p-2 sm:p-2.5 rounded-xl bg-[#12161f] border border-brand-border/60">
+            <p class="font-bold text-white">كيف يمكنني تتبع طلبي؟</p>
+            <p class="text-brand-metallic mt-0.5">بمجرد تأكيد طلبك عبر الواتساب، يزودك فريق العمل بحالة الطلب ورقم المتابعة مباشرة.</p>
+          </div>
+          <div class="p-2 sm:p-2.5 rounded-xl bg-[#12161f] border border-brand-border/60">
+            <p class="font-bold text-white">ما هي طرق الدفع المتاحة؟</p>
+            <p class="text-brand-metallic mt-0.5">الدفع كاش عند الاستلام أو من خلال محافظ الدفع الإلكتروني (فودافون كاش والمحافظ الذكية).</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- VIEW 2: CATEGORY MEALS VIEW -->
+    <div id="view-category" class="hidden space-y-3 sm:space-y-4">
+      
+      <!-- Sub-header: Back button, Title & Filters -->
+      <div class="flex items-center justify-between bg-brand-cardBg p-2 sm:p-2.5 rounded-xl border border-brand-border">
+        <button onclick="navigateTo('home')" class="flex items-center gap-1 px-2.5 py-1 rounded-lg border border-brand-border text-[11px] sm:text-xs font-bold bg-[#12161f] text-brand-silver hover:text-white transition">
+          <i class="fa-solid fa-arrow-right"></i>
+          رجوع
+        </button>
+
+        <h2 id="current-category-title" class="text-xs sm:text-sm font-bold text-white truncate max-w-[140px] sm:max-w-none text-center"></h2>
+
+        <!-- Filter Dropdown Trigger -->
+        <div class="relative">
+          <button onclick="toggleFilterMenu()" class="p-1.5 px-2 rounded-lg border border-brand-border bg-[#12161f] text-brand-silver hover:text-white transition flex items-center gap-1 text-[11px]">
+            <i class="fa-solid fa-filter text-brand-red"></i>
+            <span>فلترة</span>
+          </button>
+
+          <!-- Dropdown List -->
+          <div id="filter-dropdown" class="hidden absolute left-0 mt-1.5 w-40 bg-[#1a202c] border border-brand-border rounded-xl shadow-2xl py-1 z-30 text-[10px] sm:text-[11px] text-right">
+            <button onclick="applySort('price-asc')" class="w-full text-right px-3 py-1.5 hover:bg-brand-red/20 hover:text-white block">من الأقل للأعلى سعراً</button>
+            <button onclick="applySort('price-desc')" class="w-full text-right px-3 py-1.5 hover:bg-brand-red/20 hover:text-white block">من الأعلى للأقل سعراً</button>
+            <button onclick="applySort('date-desc')" class="w-full text-right px-3 py-1.5 hover:bg-brand-red/20 hover:text-white block">الأحدث أولاً</button>
+            <button onclick="applySort('date-asc')" class="w-full text-right px-3 py-1.5 hover:bg-brand-red/20 hover:text-white block">الأقدم أولاً</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Meals Grid -->
+      <div id="meals-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5 sm:gap-3">
+        <!-- Rendered via JS -->
+      </div>
+    </div>
+
+    <!-- VIEW 3: CART INTERNAL PAGE -->
+    <div id="view-cart" class="hidden space-y-3 sm:space-y-4">
+      <div class="flex items-center justify-between bg-brand-cardBg p-2 sm:p-2.5 rounded-xl border border-brand-border">
+        <button onclick="navigateTo('home')" class="flex items-center gap-1 px-2.5 py-1 rounded-lg border border-brand-border text-[11px] sm:text-xs font-bold bg-[#12161f] text-brand-silver hover:text-white transition">
+          <i class="fa-solid fa-arrow-right"></i>
+          متابعة التسوق
+        </button>
+        <h2 class="text-xs sm:text-sm font-bold text-white">سلة المشتريات</h2>
+        <div class="w-12"></div>
+      </div>
+
+      <!-- Cart Items Section -->
+      <div class="bg-brand-cardBg border border-brand-border rounded-2xl p-3 sm:p-4 space-y-2">
+        <h3 class="text-xs sm:text-sm font-bold text-white mb-2">الوجبات المختارة:</h3>
+        <div id="cart-page-items" class="space-y-2">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+
+      <!-- Checkout Form -->
+      <div class="bg-brand-cardBg border border-brand-border rounded-2xl p-3 sm:p-4">
+        <h3 class="text-xs sm:text-sm font-bold text-white mb-3 pb-2 border-b border-brand-border">بيانات التوصيل وتأكيد الطلب</h3>
+        <form id="order-form" onsubmit="handleSendOrder(event)" class="space-y-2.5 text-[11px] sm:text-xs">
+          <div>
+            <label class="block text-brand-metallic mb-1 font-semibold">الاسم بالكامل:</label>
+            <input type="text" id="order-name" required placeholder="أدخل اسمك الكريم" class="w-full bg-[#12161f] border border-brand-border rounded-xl p-2.5 text-white focus:outline-none focus:border-brand-red">
+          </div>
+
+          <div>
+            <label class="block text-brand-metallic mb-1 font-semibold">رقم الهاتف (مصر):</label>
+            <input type="tel" id="order-phone" required placeholder="01xxxxxxxxx (11 رقم)" class="w-full bg-[#12161f] border border-brand-border rounded-xl p-2.5 text-white focus:outline-none focus:border-brand-red text-left" dir="ltr">
+            <p id="phone-error" class="text-[10px] text-red-500 hidden mt-1">يجب إدخال رقم مصري صحيح (010, 011, 012, 015) مكون من 11 رقماً.</p>
+          </div>
+
+          <div>
+            <label class="block text-brand-metallic mb-1 font-semibold">العنوان بالتفصيل:</label>
+            <input type="text" id="order-address" required placeholder="المنطقة، الشارع، رقم العمارة والشقة" class="w-full bg-[#12161f] border border-brand-border rounded-xl p-2.5 text-white focus:outline-none focus:border-brand-red">
+          </div>
+
+          <div class="pt-2 border-t border-brand-border flex items-center justify-between text-xs sm:text-sm font-bold text-white">
+            <span>إجمالي الحساب:</span>
+            <span id="cart-page-total" class="text-brand-red text-sm sm:text-base">0 ج.م</span>
+          </div>
+
+          <button type="submit" id="btn-submit-order" class="w-full bg-brand-red hover:bg-brand-redHover text-white font-bold py-2.5 sm:py-3 rounded-xl transition duration-200 flex items-center justify-center gap-2 shadow-lg mt-2">
+            <i class="fa-brands fa-whatsapp text-base sm:text-lg"></i>
+            تأكيد وإرسال الطلب واتساب
+          </button>
+        </form>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ==================== 3. FOOTER (Hidden on Subpages) ==================== -->
+  <footer id="main-footer" class="mt-8 mb-4 max-w-4xl w-full mx-auto px-3">
+    <div class="bg-brand-cardBg border border-brand-border rounded-2xl p-4 sm:p-5 text-center shadow-lg space-y-3">
+      
+      <!-- 1. Logo Image & Title -->
+      <div class="flex items-center justify-center gap-2">
+        <div class="w-7 h-7 rounded-full border border-brand-red overflow-hidden bg-black flex items-center justify-center">
+          <img src="https://res.cloudinary.com/dsxrjmcxs/image/upload/c_limit,w_400,q_auto,f_auto/v1787108547/te24ianhwbmlvvinlf7g.png" alt="طأطأ" class="w-full h-full object-contain">
+        </div>
+        <span class="text-base sm:text-lg font-black text-white">مطعم طأطأ</span>
+      </div>
+
+      <!-- 2. Branches in one line -->
+      <div class="text-[10px] sm:text-xs text-brand-metallic">
+        <p><i class="fa-solid fa-location-dot text-brand-red ml-1"></i> <span class="text-brand-silver font-semibold">فرع 1:</span> شارع التحرير، الدقي | <span class="text-brand-silver font-semibold">فرع 2:</span> شارع الهرم، الجيزة</p>
+      </div>
+
+      <!-- 3. Firebase Live Visitor Counter -->
+      <div class="flex items-center justify-center">
+        <div class="bg-[#12161f] px-3 py-1 rounded-full border border-brand-border text-[10px] sm:text-[11px] text-brand-metallic flex items-center gap-1.5">
+          <i class="fa-solid fa-eye text-brand-red"></i>
+          <span>عدد الزيارات:</span>
+          <strong id="visitor-count" class="text-white font-bold">...</strong>
+        </div>
+      </div>
+
+      <!-- 4. Social Media Icons -->
+      <div class="flex items-center justify-center gap-4 sm:gap-5 text-base sm:text-lg text-brand-silver pt-0.5">
+        <a href="#" class="hover:text-blue-500 transition"><i class="fa-brands fa-facebook"></i></a>
+        <a href="#" class="hover:text-pink-500 transition"><i class="fa-brands fa-instagram"></i></a>
+        <a href="https://wa.me/201206244875" target="_blank" class="hover:text-green-500 transition"><i class="fa-brands fa-whatsapp"></i></a>
+        <a href="#" class="hover:text-white transition"><i class="fa-brands fa-tiktok"></i></a>
+      </div>
+
+      <!-- 5. Standalone Copyright Line -->
+      <div class="pt-2.5 border-t border-brand-border/60 text-[10px] sm:text-[11px] text-brand-metallic">
+        جميع الحقوق محفوظة &copy; مطعم طأطأ <span id="current-year"></span>
+      </div>
+
+    </div>
+  </footer>
+
+  <!-- ==================== 4. JAVASCRIPT LOGIC ==================== -->
+  <script>
+    const WHATSAPP_PHONE = "201206244875";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyClioSTiWEtg8QR0LTv01ctCdEUyiFi-Jo",
+      authDomain: "tata-e4855.firebaseapp.com",
+      projectId: "tata-e4855",
+      storageBucket: "tata-e4855.firebasestorage.app",
+      messagingSenderId: "42130743015",
+      appId: "1:42130743015:web:2f576be99527e66ce34c42",
+      measurementId: "G-SZXK3NFJKS"
+    };
+
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    // 15 Categories (With "عروض" and the new Crepe & Meals images)
+    const CATEGORIES = [
+      { id: "meat-sandwiches", name: "سندوتشات لحوم", img: "https://images.pexels.com/photos/1639557/pexels-photo-1639557.jpeg?auto=compress&cs=tinysrgb&w=300" },
+      { id: "tata-shawarma", name: "شاورما طاطا", img: "https://images.pexels.com/photos/461198/pexels-photo-461198.jpeg?auto=compress&cs=tinysrgb&w=300" },
+      { id: "twister", name: "تويستر", img: "https://images.pexels.com/photos/2983101/pexels-photo-2983101.jpeg?auto=compress&cs=tinysrgb&w=300" },
+      { id: "fried-chicken", name: "فرايد تشيكن", img: "https://images.pexels.com/photos/2338407/pexels-photo-2338407.jpeg?auto=compress&cs=tinysrgb&w=300" },
+      { id: "crepe", name: "كريب", img: "https://images.unsplash.com/photo-1519676867240-f03562e64548?auto=format&fit=crop&w=400&q=80" },
+      { id: "pizza", name: "بيتزا", img: "https://images.pexels.com/photos/825661/pexels-photo-825661.jpeg?auto=compress&cs=tinysrgb&w=300" },
+      { id: "burger", name: "برجر", img: "https://images.pexels.com/photos/1639562/pexels-photo-1639562.jpeg?auto=compress&cs=tinysrgb&w=300" },
+      { id: "broast", name: "بروست", img: "https://images.pexels.com/photos/60616/fried-chicken-chicken-fried-crunchy-60616.jpeg?auto=compress&cs=tinysrgb&w=300" },
+      { id: "musahab", name: "مسحب", img: "https://images.pexels.com/photos/106343/pexels-photo-106343.jpeg?auto=compress&cs=tinysrgb&w=300" },
+      { id: "fries", name: "فرايز", img: "https://images.pexels.com/photos/1583884/pexels-photo-1583884.jpeg?auto=compress&cs=tinysrgb&w=300" },
+      { id: "meals", name: "وجبات", img: "https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=400&q=80" },
+      { id: "seafood-sandwich", name: "ساندوتش بحرية", img: "https://images.pexels.com/photos/725991/pexels-photo-725991.jpeg?auto=compress&cs=tinysrgb&w=300" },
+      { id: "popular-sandwiches", name: "سندوتشات شعبية", img: "https://images.pexels.com/photos/2097090/pexels-photo-2097090.jpeg?auto=compress&cs=tinysrgb&w=300" },
+      { id: "popular-boxes", name: "علب شعبي", img: "https://images.pexels.com/photos/1640777/pexels-photo-1640777.jpeg?auto=compress&cs=tinysrgb&w=300" },
+      { id: "offers", name: "عروض", img: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=400&q=80" }
+    ];
+
+    let currentCategory = null;
+    let categoryMeals = [];
+    let cart = JSON.parse(localStorage.getItem('tata_cart') || '[]');
+
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('current-year').textContent = new Date().getFullYear();
+      renderCategories();
+      updateCartBadge();
+      initVisitorCounter();
+      checkUrlQueryForMeal();
+    });
+
+    async function checkUrlQueryForMeal() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const mealId = urlParams.get('meal');
+      if (mealId) {
+        try {
+          const doc = await db.collection('meals').doc(mealId).get();
+          if (doc.exists) {
+            selectCategory(doc.data().categoryId);
+          }
+        } catch (e) {
+          console.error(e);
+        }
+      }
+    }
+
+    function initVisitorCounter() {
+      const statsRef = db.collection('stats').doc('visitors');
+      statsRef.get().then(doc => {
+        if (!doc.exists) {
+          statsRef.set({ count: 1 });
+          document.getElementById('visitor-count').textContent = '1';
+        } else {
+          statsRef.update({ count: firebase.firestore.FieldValue.increment(1) });
+          document.getElementById('visitor-count').textContent = (doc.data().count + 1).toLocaleString('ar-EG');
+        }
+      }).catch(() => {
+        document.getElementById('visitor-count').textContent = '1,250';
+      });
+    }
+
+    // Navigation and Footer visibility toggle
+    function navigateTo(view) {
+      document.getElementById('view-home').classList.add('hidden');
+      document.getElementById('view-category').classList.add('hidden');
+      document.getElementById('view-cart').classList.add('hidden');
+      
+      const footer = document.getElementById('main-footer');
+
+      if (view === 'home') {
+        document.getElementById('view-home').classList.remove('hidden');
+        if (footer) footer.classList.remove('hidden');
+      } else if (view === 'category') {
+        document.getElementById('view-category').classList.remove('hidden');
+        if (footer) footer.classList.add('hidden');
+      } else if (view === 'cart') {
+        document.getElementById('view-cart').classList.remove('hidden');
+        if (footer) footer.classList.add('hidden');
+        renderCartPage();
+      }
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function renderCategories() {
+      document.getElementById('categories-grid').innerHTML = CATEGORIES.map(cat => `
+        <div onclick="selectCategory('${cat.id}')" class="relative aspect-square rounded-xl overflow-hidden border border-brand-border bg-brand-cardBg cursor-pointer active:scale-95 transition shadow-sm">
+          <img src="${cat.img}" loading="lazy" alt="${cat.name}" class="w-full h-full object-cover">
+          <div class="absolute inset-0 mobile-overlay flex items-center justify-center p-1">
+            <div class="bg-black/80 border border-brand-border/60 px-1.5 py-0.5 rounded-lg w-full text-center">
+              <span class="text-[10px] sm:text-xs font-bold text-white block truncate leading-tight">${cat.name}</span>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function selectCategory(catId) {
+      const cat = CATEGORIES.find(c => c.id === catId);
+      if (!cat) return;
+      currentCategory = cat;
+      document.getElementById('current-category-title').textContent = cat.name;
+      navigateTo('category');
+      loadCategoryMeals(catId);
+    }
+
+    function loadCategoryMeals(catId) {
+      const container = document.getElementById('meals-grid');
+      container.innerHTML = [1, 2, 3].map(() => `
+        <div class="bg-brand-cardBg border border-brand-border rounded-xl p-2.5 space-y-2">
+          <div class="w-full aspect-video rounded-lg skeleton"></div>
+          <div class="h-3.5 w-2/3 skeleton rounded"></div>
+          <div class="h-8 w-full skeleton rounded-lg"></div>
+        </div>
+      `).join('');
+
+      db.collection('meals').where('categoryId', '==', catId).get().then(snap => {
+        categoryMeals = [];
+        snap.forEach(d => categoryMeals.push({ id: d.id, ...d.data() }));
+        renderMeals(categoryMeals);
+      }).catch(() => renderMeals([]));
+    }
+
+    function renderMeals(meals) {
+      const container = document.getElementById('meals-grid');
+      if (!meals || meals.length === 0) {
+        container.innerHTML = `
+          <div class="col-span-full text-center py-10 bg-brand-cardBg border border-brand-border rounded-2xl">
+            <i class="fa-solid fa-utensils text-2xl text-brand-metallic mb-1.5"></i>
+            <p class="text-xs sm:text-sm font-bold text-white">لا توجد وجبات مضافة حالياً في هذا القسم</p>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = meals.map(m => {
+        const updatedDate = m.updatedAt ? new Date(m.updatedAt.toDate ? m.updatedAt.toDate() : m.updatedAt).toLocaleDateString('ar-EG') : 'حديثاً';
+        const img = m.imageUrl || 'https://res.cloudinary.com/dsxrjmcxs/image/upload/c_limit,w_400,q_auto,f_auto/v1787108547/te24ianhwbmlvvinlf7g.png';
+        
+        return `
+          <div class="bg-brand-cardBg border border-brand-border rounded-2xl p-2.5 sm:p-3 flex flex-col justify-between shadow">
+            
+            <div class="relative w-full aspect-video rounded-xl overflow-hidden mb-2 bg-black">
+              <img src="${img}" loading="lazy" alt="${m.name}" class="w-full h-full object-cover">
+              <button onclick="shareMeal('${m.id}', '${escapeQuotes(m.name)}', ${m.price})" class="absolute top-1.5 left-1.5 w-6 h-6 rounded-full bg-black/70 text-white flex items-center justify-center text-[10px] hover:bg-brand-red transition">
+                <i class="fa-solid fa-share-nodes"></i>
+              </button>
+            </div>
+
+            <div class="space-y-0.5">
+              <div class="text-[9px] text-brand-metallic">تاريخ النشر: ${updatedDate}</div>
+              <div class="flex items-center justify-between gap-1">
+                <h3 class="text-xs sm:text-sm font-bold text-white truncate">${m.name}</h3>
+                <span class="text-xs sm:text-sm font-black text-brand-red shrink-0">${m.price} ج.م</span>
+              </div>
+              <p class="text-[10px] sm:text-[11px] text-brand-metallic line-clamp-1">${m.desc || ''}</p>
+            </div>
+
+            <div class="flex items-center gap-1.5 mt-2.5 pt-2 border-t border-brand-border/60">
+              <button onclick="orderSingleDirect('${m.id}', '${escapeQuotes(m.name)}', ${m.price}, '${img}')" class="flex-1 bg-brand-red hover:bg-brand-redHover text-white text-[11px] sm:text-xs font-bold py-2 rounded-xl transition">
+                طلب
+              </button>
+              <button onclick="addToCart('${m.id}', '${escapeQuotes(m.name)}', ${m.price}, '${img}')" class="w-8 h-8 bg-[#12161f] border border-brand-border rounded-xl text-brand-silver hover:text-white flex items-center justify-center transition">
+                <i class="fa-solid fa-cart-plus text-xs"></i>
+              </button>
+            </div>
+
+          </div>
+        `;
+      }).join('');
+    }
+
+    function escapeQuotes(str) { return (str || '').replace(/'/g, "\\'").replace(/"/g, '&quot;'); }
+
+    function toggleFilterMenu() { document.getElementById('filter-dropdown').classList.toggle('hidden'); }
+    function applySort(type) {
+      toggleFilterMenu();
+      if (!categoryMeals.length) return;
+      if (type === 'price-asc') categoryMeals.sort((a, b) => Number(a.price) - Number(b.price));
+      if (type === 'price-desc') categoryMeals.sort((a, b) => Number(b.price) - Number(a.price));
+      if (type === 'date-desc') categoryMeals.sort((a, b) => (b.updatedAt?.seconds || 0) - (a.updatedAt?.seconds || 0));
+      if (type === 'date-asc') categoryMeals.sort((a, b) => (a.updatedAt?.seconds || 0) - (b.updatedAt?.seconds || 0));
+      renderMeals(categoryMeals);
+    }
+
+    function addToCart(id, name, price, imageUrl) {
+      const existing = cart.find(i => i.id === id);
+      if (existing) {
+        existing.qty += 1;
+      } else {
+        cart.push({ id, name, price: Number(price), imageUrl, qty: 1 });
+      }
+      saveCart();
+      updateCartBadge();
+    }
+
+    function orderSingleDirect(id, name, price, imageUrl) {
+      cart = [{ id, name, price: Number(price), imageUrl, qty: 1 }];
+      saveCart();
+      updateCartBadge();
+      navigateTo('cart');
+    }
+
+    function updateCartQty(id, delta) {
+      const item = cart.find(i => i.id === id);
+      if (!item) return;
+      item.qty += delta;
+      if (item.qty <= 0) cart = cart.filter(i => i.id !== id);
+      saveCart();
+      updateCartBadge();
+      renderCartPage();
+    }
+
+    function removeCartItem(id) {
+      cart = cart.filter(i => i.id !== id);
+      saveCart();
+      updateCartBadge();
+      renderCartPage();
+    }
+
+    function saveCart() { localStorage.setItem('tata_cart', JSON.stringify(cart)); }
+    function updateCartBadge() {
+      const count = cart.reduce((s, i) => s + i.qty, 0);
+      document.getElementById('cart-badge').textContent = count;
+    }
+
+    function renderCartPage() {
+      const list = document.getElementById('cart-page-items');
+      const totalEl = document.getElementById('cart-page-total');
+
+      if (!cart || cart.length === 0) {
+        list.innerHTML = `
+          <div class="text-center py-6">
+            <p class="text-xs text-brand-metallic">السلة فارغة حالياً</p>
+          </div>
+        `;
+        totalEl.textContent = '0 ج.م';
+        return;
+      }
+
+      let total = 0;
+      list.innerHTML = cart.map(item => {
+        const itemTotal = item.price * item.qty;
+        total += itemTotal;
+        return `
+          <div class="flex items-center justify-between bg-[#12161f] p-2 sm:p-2.5 rounded-xl border border-brand-border text-[11px] sm:text-xs gap-2">
+            <img src="${item.imageUrl || 'https://res.cloudinary.com/dsxrjmcxs/image/upload/c_limit,w_400,q_auto,f_auto/v1787108547/te24ianhwbmlvvinlf7g.png'}" class="w-10 h-10 sm:w-11 sm:h-11 rounded-lg object-cover border border-brand-border shrink-0">
+            
+            <div class="flex-grow min-w-0">
+              <h4 class="font-bold text-white text-xs truncate">${item.name}</h4>
+              <p class="text-brand-metallic text-[10px] sm:text-[11px]">${item.price} &times; ${item.qty} = <span class="text-brand-red font-bold">${itemTotal} ج.م</span></p>
+            </div>
+
+            <div class="flex items-center gap-1 bg-brand-cardBg border border-brand-border rounded-lg px-1 py-0.5 shrink-0">
+              <button type="button" onclick="updateCartQty('${item.id}', -1)" class="w-5 h-5 bg-[#12161f] rounded text-white font-bold flex items-center justify-center text-xs">-</button>
+              <span class="px-1 text-white font-bold text-xs">${item.qty}</span>
+              <button type="button" onclick="updateCartQty('${item.id}', 1)" class="w-5 h-5 bg-[#12161f] rounded text-white font-bold flex items-center justify-center text-xs">+</button>
+            </div>
+
+            <button type="button" onclick="removeCartItem('${item.id}')" class="text-red-500 hover:text-red-400 p-1.5 shrink-0" title="حذف هذا الصنف">
+              <i class="fa-solid fa-trash-can text-sm"></i>
+            </button>
+          </div>
+        `;
+      }).join('');
+
+      totalEl.textContent = `${total} ج.م`;
+    }
+
+    async function handleSendOrder(e) {
+      e.preventDefault();
+      if (!cart || cart.length === 0) {
+        alert("السلة فارغة!");
+        return;
+      }
+
+      const name = document.getElementById('order-name').value.trim();
+      const phone = document.getElementById('order-phone').value.trim();
+      const address = document.getElementById('order-address').value.trim();
+      const phoneErr = document.getElementById('phone-error');
+
+      const egyptRegex = /^(010|011|012|015)[0-9]{8}$/;
+      if (!egyptRegex.test(phone)) {
+        phoneErr.classList.remove('hidden');
+        return;
+      }
+      phoneErr.classList.add('hidden');
+
+      const submitBtn = document.getElementById('btn-submit-order');
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> جاري تأكيد الطلب...`;
+
+      try {
+        const statsRef = db.collection('stats').doc('orders');
+        let orderNum = 1;
+        const statDoc = await statsRef.get();
+        if (!statDoc.exists) {
+          await statsRef.set({ count: 1 });
+        } else {
+          await statsRef.update({ count: firebase.firestore.FieldValue.increment(1) });
+          orderNum = (statDoc.data().count || 0) + 1;
+        }
+
+        let itemsSummary = "";
+        let totalSum = 0;
+        cart.forEach((i, idx) => {
+          itemsSummary += `${idx + 1}. *${i.name}* (${i.qty}) - ${i.price * i.qty} ج.م%0a`;
+          totalSum += i.price * i.qty;
+        });
+
+        const msg = `*طلب جديد من موقع مطعم طأطأ*%0a` +
+                    `----------------------------%0a` +
+                    `*رقم الطلب:* %23${orderNum}%0a` +
+                    `*اسم العميل:* ${encodeURIComponent(name)}%0a` +
+                    `*رقم الهاتف:* ${phone}%0a` +
+                    `*العنوان:* ${encodeURIComponent(address)}%0a` +
+                    `----------------------------%0a` +
+                    `*الطلبات:*%0a${itemsSummary}` +
+                    `----------------------------%0a` +
+                    `*إجمالي المبلغ:* ${totalSum} ج.م%0a` +
+                    `*الوقت:* ${new Date().toLocaleTimeString('ar-EG')}`;
+
+        cart = [];
+        saveCart();
+        updateCartBadge();
+        navigateTo('home');
+
+        window.open(`https://wa.me/${WHATSAPP_PHONE}?text=${msg}`, '_blank');
+      } catch (err) {
+        alert("حدث خطأ أثناء إرسال الطلب!");
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = `<i class="fa-brands fa-whatsapp text-base sm:text-lg"></i> تأكيد وإرسال الطلب واتساب`;
+      }
+    }
+
+    function shareMeal(mealId, name, price) {
+      const shareUrl = `${window.location.origin}/api/share?id=${mealId}`;
+      if (navigator.share) {
+        navigator.share({
+          title: `وجبة ${name} | مطعم طأطأ`,
+          text: `اطلب ${name} بسعر ${price} ج.م من مطعم طأطأ!`,
+          url: shareUrl
+        }).catch(() => {});
+      } else {
+        navigator.clipboard.writeText(shareUrl);
+        alert("تم نسخ رابط الوجبة بنجاح!");
+      }
+    }
+  </script>
+</body>
+</html>

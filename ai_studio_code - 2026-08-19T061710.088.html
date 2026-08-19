@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>لوحة إدارة مطعم طأطأ | تسجيل الدخول الآمن</title>
+  
+  <!-- Tailwind CSS & FontAwesome -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: { 
+              red: '#d61a29', 
+              redHover: '#b91522', 
+              cardBg: '#161b22', 
+              border: '#272f3d', 
+              metallic: '#9ca3af',
+              silver: '#e5e7eb'
+            }
+          },
+          fontFamily: { cairo: ['Cairo', 'sans-serif'] }
+        }
+      }
+    }
+  </script>
+  <style>
+    * { font-family: 'Cairo', sans-serif; box-sizing: border-box; }
+    body { background-color: #0e1117; color: #e5e7eb; }
+    .line-clamp-1 { display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
+  </style>
+
+  <!-- Firebase SDKs (App + Auth + Firestore) -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+</head>
+<body class="min-h-screen p-3 sm:p-6 text-xs sm:text-sm">
+
+  <div class="max-w-4xl mx-auto space-y-4 sm:space-y-6">
+
+    <!-- Header -->
+    <div class="flex items-center justify-between bg-brand-cardBg border border-brand-border p-3.5 rounded-2xl shadow-lg">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-full border-2 border-brand-red overflow-hidden bg-black flex items-center justify-center shadow">
+          <img src="https://res.cloudinary.com/dsxrjmcxs/image/upload/c_limit,w_400,q_auto,f_auto/v1787108547/te24ianhwbmlvvinlf7g.png" alt="طأطأ" class="w-full h-full object-contain">
+        </div>
+        <div>
+          <h1 class="font-black text-base sm:text-lg text-white">إدارة مطعم طأطأ</h1>
+          <p class="text-[10px] text-brand-metallic">لوحة التحكم السحابية المباشرة</p>
+        </div>
+      </div>
+      
+      <div class="flex items-center gap-2">
+        <a href="/" class="px-3 py-1.5 bg-[#12161f] border border-brand-border hover:border-brand-red rounded-xl text-xs font-bold transition flex items-center gap-1">
+          <i class="fa-solid fa-store text-brand-red"></i>
+          <span>الموقع</span>
+        </a>
+        <button id="btn-logout" onclick="logoutAdmin()" class="hidden px-3 py-1.5 bg-red-600/20 hover:bg-red-600 border border-red-600/40 hover:border-red-600 text-red-400 hover:text-white rounded-xl text-xs font-bold transition">
+          <i class="fa-solid fa-right-from-bracket ml-1"></i> خروج
+        </button>
+      </div>
+    </div>
+
+    <!-- 1. Login Form View (Email & Password via Firebase Auth) -->
+    <div id="auth-box" class="bg-brand-cardBg border border-brand-border rounded-2xl p-5 sm:p-8 text-center max-w-md mx-auto space-y-4 shadow-xl">
+      <div class="w-14 h-14 mx-auto rounded-full bg-brand-red/10 border border-brand-red/30 flex items-center justify-center">
+        <i class="fa-solid fa-shield-halved text-2xl text-brand-red"></i>
+      </div>
+      
+      <div>
+        <h2 class="font-black text-base sm:text-lg text-white">تسجيل الدخول للمدير</h2>
+        <p class="text-[11px] text-brand-metallic mt-0.5">أدخل البريد الإلكتروني وكلمة المرور الخاصة بحساب الإدارة</p>
+      </div>
+
+      <form id="login-form" onsubmit="handleAdminLogin(event)" class="space-y-3 text-right">
+        <div>
+          <label class="block text-brand-metallic text-[11px] mb-1 font-semibold">البريد الإلكتروني:</label>
+          <div class="relative">
+            <input type="email" id="admin-email" required placeholder="admin@example.com" class="w-full bg-[#12161f] border border-brand-border rounded-xl p-2.5 pl-9 text-white focus:outline-none focus:border-brand-red text-xs text-left" dir="ltr">
+            <i class="fa-solid fa-envelope absolute left-3 top-3 text-brand-metallic text-xs"></i>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-brand-metallic text-[11px] mb-1 font-semibold">كلمة المرور:</label>
+          <div class="relative">
+            <input type="password" id="admin-password" required placeholder="••••••••" class="w-full bg-[#12161f] border border-brand-border rounded-xl p-2.5 pl-9 text-white focus:outline-none focus:border-brand-red text-xs text-left" dir="ltr">
+            <i class="fa-solid fa-lock absolute left-3 top-3 text-brand-metallic text-xs"></i>
+          </div>
+        </div>
+
+        <p id="login-error" class="text-[11px] text-red-500 hidden text-center font-bold"></p>
+
+        <button type="submit" id="btn-login-submit" class="w-full bg-brand-red hover:bg-brand-redHover text-white font-bold py-2.5 rounded-xl transition duration-200 text-xs shadow-md mt-2 flex items-center justify-center gap-2">
+          <span>دخول لوحة التحكم</span>
+        </button>
+      </form>
+    </div>
+
+    <!-- 2. Dashboard View (Only displayed if user UID matches) -->
+    <div id="dashboard-box" class="hidden space-y-4 sm:space-y-6">
+
+      <!-- Add/Edit Meal Form -->
+      <div class="bg-brand-cardBg border border-brand-border rounded-2xl p-4 sm:p-5 shadow">
+        <h2 id="form-title" class="font-bold text-xs sm:text-sm text-brand-red mb-3 flex items-center gap-2">
+          <i class="fa-solid fa-plus-circle"></i> إضافة وجبة جديدة
+        </h2>
+
+        <form id="meal-form" onsubmit="saveMeal(event)" class="space-y-3 text-xs">
+          <input type="hidden" id="edit-id">
+          <input type="hidden" id="current-img-url">
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            <div>
+              <label class="block text-brand-metallic mb-1 font-semibold">القسم التابع له:</label>
+              <select id="meal-category" required class="w-full bg-[#12161f] border border-brand-border rounded-xl p-2.5 text-white focus:border-brand-red"></select>
+            </div>
+            <div>
+              <label class="block text-brand-metallic mb-1 font-semibold">اسم الوجبة:</label>
+              <input type="text" id="meal-name" required placeholder="مثال: شاورما لحم عربي دبل" class="w-full bg-[#12161f] border border-brand-border rounded-xl p-2.5 text-white focus:border-brand-red">
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            <div>
+              <label class="block text-brand-metallic mb-1 font-semibold">السعر (ج.م):</label>
+              <input type="number" id="meal-price" required min="1" placeholder="مثال: 95" class="w-full bg-[#12161f] border border-brand-border rounded-xl p-2.5 text-white focus:border-brand-red">
+            </div>
+            <div>
+              <label class="block text-brand-metallic mb-1 font-semibold">صورة الوجبة (رفع سحابي Cloudinary):</label>
+              <input type="file" id="meal-file" accept="image/*" class="w-full bg-[#12161f] border border-brand-border rounded-xl p-1.5 text-white file:bg-brand-red file:border-0 file:text-white file:rounded-lg file:text-xs file:px-2 file:py-1">
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-brand-metallic mb-1 font-semibold">الوصف (سطر واحد):</label>
+            <input type="text" id="meal-desc" required placeholder="مثال: شرائح لحم بلدي طازج مع طحينة وخيار مخلل وبطاطس" class="w-full bg-[#12161f] border border-brand-border rounded-xl p-2.5 text-white focus:border-brand-red">
+          </div>
+
+          <div class="flex gap-2 pt-2">
+            <button type="submit" id="submit-btn" class="flex-1 bg-brand-red hover:bg-brand-redHover text-white font-bold py-2.5 rounded-xl transition text-xs shadow">حفظ ونشر الوجبة</button>
+            <button type="button" onclick="resetForm()" class="px-4 bg-gray-700 hover:bg-gray-600 text-white rounded-xl text-xs">إلغاء</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Current Meals List -->
+      <div class="bg-brand-cardBg border border-brand-border rounded-2xl p-4 sm:p-5 shadow">
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="font-bold text-xs sm:text-sm text-white">قائمة الوجبات والعروض المنشورة بالموقع</h3>
+          <span id="meals-count-badge" class="bg-[#12161f] px-2 py-0.5 rounded-md border border-brand-border text-[10px] text-brand-metallic">0 وجبة</span>
+        </div>
+        <div id="meals-list" class="space-y-2 max-h-[500px] overflow-y-auto pr-1"></div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- JavaScript Logic -->
+  <script>
+    const ADMIN_TARGET_UID = "XmamlESdCLdEbNpgPcqRupX64lH2";
+    const CLOUDINARY_CLOUD = "dsxrjmcxs";
+    const CLOUDINARY_PRESET = "my_public_preset";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyClioSTiWEtg8QR0LTv01ctCdEUyiFi-Jo",
+      authDomain: "tata-e4855.firebaseapp.com",
+      projectId: "tata-e4855",
+      storageBucket: "tata-e4855.firebasestorage.app",
+      messagingSenderId: "42130743015",
+      appId: "1:42130743015:web:2f576be99527e66ce34c42",
+      measurementId: "G-SZXK3NFJKS"
+    };
+
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    const CATEGORIES = [
+      { id: "meat-sandwiches", name: "سندوتشات لحوم" },
+      { id: "tata-shawarma", name: "شاورما طاطا" },
+      { id: "twister", name: "تويستر" },
+      { id: "fried-chicken", name: "فرايد تشيكن" },
+      { id: "crepe", name: "كريب" },
+      { id: "pizza", name: "بيتزا" },
+      { id: "burger", name: "برجر" },
+      { id: "broast", name: "بروست" },
+      { id: "musahab", name: "مسحب" },
+      { id: "fries", name: "فرايز" },
+      { id: "meals", name: "وجبات" },
+      { id: "seafood-sandwich", name: "ساندوتش بحرية" },
+      { id: "popular-sandwiches", name: "سندوتشات شعبية" },
+      { id: "popular-boxes", name: "علب شعبي" },
+      { id: "offers", name: "عروض" }
+    ];
+
+    // Listen to Firebase Auth state
+    auth.onAuthStateChanged((user) => {
+      const authBox = document.getElementById('auth-box');
+      const dashboardBox = document.getElementById('dashboard-box');
+      const btnLogout = document.getElementById('btn-logout');
+
+      if (user && user.uid === ADMIN_TARGET_UID) {
+        authBox.classList.add('hidden');
+        dashboardBox.classList.remove('hidden');
+        btnLogout.classList.remove('hidden');
+        initAdminDashboard();
+      } else {
+        if (user && user.uid !== ADMIN_TARGET_UID) {
+          auth.signOut();
+          showError("الحساب المستخدم ليس لديه صلاحيات الإدارة!");
+        }
+        authBox.classList.remove('hidden');
+        dashboardBox.classList.add('hidden');
+        btnLogout.classList.add('hidden');
+      }
+    });
+
+    async function handleAdminLogin(e) {
+      e.preventDefault();
+      const email = document.getElementById('admin-email').value.trim();
+      const password = document.getElementById('admin-password').value;
+      const submitBtn = document.getElementById('btn-login-submit');
+      const errEl = document.getElementById('login-error');
+
+      errEl.classList.add('hidden');
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> جاري التحقق...`;
+
+      try {
+        const userCredential = await auth.signInWithEmailAndPassword(email, password);
+        if (userCredential.user.uid !== ADMIN_TARGET_UID) {
+          await auth.signOut();
+          showError("غير مصرح لك بالدخول، هذا الحساب ليس حساب المدير!");
+        }
+      } catch (err) {
+        console.error("Login error:", err);
+        if (err.code === 'auth/wrong-password' || err.code === 'auth/user-not-found' || err.code === 'auth/invalid-credential') {
+          showError("البريد الإلكتروني أو كلمة المرور غير صحيحة!");
+        } else if (err.code === 'auth/invalid-email') {
+          showError("صيغة البريد الإلكتروني غير صحيحة!");
+        } else {
+          showError("حدث خطأ أثناء تسجيل الدخول: " + err.message);
+        }
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = `<span>دخول لوحة التحكم</span>`;
+      }
+    }
+
+    function showError(msg) {
+      const errEl = document.getElementById('login-error');
+      errEl.textContent = msg;
+      errEl.classList.remove('hidden');
+    }
+
+    function logoutAdmin() {
+      if (confirm("هل تريد تسجيل الخروج من لوحة الإدارة؟")) {
+        auth.signOut();
+      }
+    }
+
+    function initAdminDashboard() {
+      const select = document.getElementById('meal-category');
+      select.innerHTML = CATEGORIES.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+      loadMeals();
+    }
+
+    async function saveMeal(e) {
+      e.preventDefault();
+      const submitBtn = document.getElementById('submit-btn');
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'جاري المعالجة والرفع...';
+
+      const id = document.getElementById('edit-id').value;
+      const categoryId = document.getElementById('meal-category').value;
+      const name = document.getElementById('meal-name').value.trim();
+      const price = Number(document.getElementById('meal-price').value);
+      const desc = document.getElementById('meal-desc').value.trim();
+      const file = document.getElementById('meal-file').files[0];
+      let imageUrl = document.getElementById('current-img-url').value;
+
+      try {
+        if (file) {
+          const form = new FormData();
+          form.append('file', file);
+          form.append('upload_preset', CLOUDINARY_PRESET);
+          const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/image/upload`, { method: 'POST', body: form });
+          const data = await res.json();
+          if (data.secure_url) imageUrl = data.secure_url;
+        }
+
+        const mealData = {
+          categoryId,
+          name,
+          price,
+          desc,
+          imageUrl: imageUrl || 'https://res.cloudinary.com/dsxrjmcxs/image/upload/c_limit,w_400,q_auto,f_auto/v1787108547/te24ianhwbmlvvinlf7g.png',
+          updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        };
+
+        if (id) {
+          await db.collection('meals').doc(id).update(mealData);
+          alert("تم تعديل الوجبة بنجاح!");
+        } else {
+          await db.collection('meals').add(mealData);
+          alert("تمت إضافة الوجبة بنجاح!");
+        }
+
+        resetForm();
+        loadMeals();
+      } catch (err) {
+        console.error(err);
+        alert("حدث خطأ أثناء الحفظ!");
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'حفظ ونشر الوجبة';
+      }
+    }
+
+    function loadMeals() {
+      const list = document.getElementById('meals-list');
+      const badge = document.getElementById('meals-count-badge');
+      list.innerHTML = `<p class="text-xs text-brand-metallic py-2">جاري تحميل الأصناف...</p>`;
+
+      db.collection('meals').orderBy('updatedAt', 'desc').get().then(snap => {
+        badge.textContent = `${snap.size} وجبة`;
+        if (snap.empty) {
+          list.innerHTML = `<p class="text-xs text-brand-metallic py-4 text-center">لا توجد وجبات مضافة حتى الآن.</p>`;
+          return;
+        }
+        list.innerHTML = snap.docs.map(doc => {
+          const m = doc.data();
+          const cat = CATEGORIES.find(c => c.id === m.categoryId);
+          return `
+            <div class="flex items-center justify-between p-2.5 rounded-xl bg-[#12161f] border border-brand-border text-xs gap-2">
+              <div class="flex items-center gap-2.5 min-w-0">
+                <img src="${m.imageUrl}" class="w-11 h-11 rounded-lg object-cover border border-brand-border shrink-0">
+                <div class="min-w-0">
+                  <h4 class="font-bold text-white text-xs truncate">${m.name}</h4>
+                  <p class="text-[10px] text-brand-metallic">${cat ? cat.name : m.categoryId} - <span class="text-brand-red font-bold">${m.price} ج.م</span></p>
+                </div>
+              </div>
+              <div class="flex items-center gap-1.5 shrink-0">
+                <button onclick="editMeal('${doc.id}', '${m.name.replace(/'/g, "\\'")}', ${m.price}, '${(m.desc||'').replace(/'/g, "\\'")}', '${m.categoryId}', '${m.imageUrl}')" class="px-2.5 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-[11px] font-bold">تعديل</button>
+                <button onclick="deleteMeal('${doc.id}')" class="px-2.5 py-1 bg-red-600 hover:bg-red-700 text-white rounded-lg text-[11px] font-bold">حذف</button>
+              </div>
+            </div>
+          `;
+        }).join('');
+      });
+    }
+
+    function editMeal(id, name, price, desc, categoryId, img) {
+      document.getElementById('edit-id').value = id;
+      document.getElementById('meal-name').value = name;
+      document.getElementById('meal-price').value = price;
+      document.getElementById('meal-desc').value = desc;
+      document.getElementById('meal-category').value = categoryId;
+      document.getElementById('current-img-url').value = img;
+      document.getElementById('form-title').innerHTML = `<i class="fa-solid fa-pen"></i> تعديل وجبة: ${name}`;
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function resetForm() {
+      document.getElementById('meal-form').reset();
+      document.getElementById('edit-id').value = '';
+      document.getElementById('current-img-url').value = '';
+      document.getElementById('form-title').innerHTML = `<i class="fa-solid fa-plus-circle"></i> إضافة وجبة جديدة`;
+    }
+
+    async function deleteMeal(id) {
+      if (confirm("هل تريد حذف هذه الوجبة نهائياً؟")) {
+        await db.collection('meals').doc(id).delete();
+        loadMeals();
+      }
+    }
+  </script>
+</body>
+</html>
